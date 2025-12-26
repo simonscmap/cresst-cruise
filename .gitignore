@@ -1,0 +1,22 @@
+# secrets
+.env
+credentials.py
+
+# outputs
+output/
+data/
+figs/
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+
+# notebooks
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
