@@ -341,13 +341,7 @@ def plot_gradient_mag(
 
     Lon2, Lat2 = np.meshgrid(lon, lat)
     vmin, vmax = _robust_limits(grad_mag_km)
-    if cmocean is not None:
-        try:
-            cmap = plt.get_cmap("cmo.amp")
-        except Exception:
-            cmap = cmocean.cm.amp
-    else:
-        cmap = "magma"
+    cmap = "magma"
 
     im = ax.pcolormesh(
         Lon2,
@@ -453,7 +447,7 @@ def plot_vector_field(
     cbar = plt.colorbar(im, ax=ax, pad=0.02, shrink=0.92)
     cbar.set_label(f"{speed_name} ({unit})")
 
-    ax.set_title(f"{speed_name.upper()} + vectors — {time_label(time_like)}")
+    ax.set_title(f"{speed_name.upper()} — {time_label(time_like)}")
 
     save_path = Path(save_path)
     save_path.parent.mkdir(parents=True, exist_ok=True)

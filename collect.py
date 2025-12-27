@@ -26,7 +26,7 @@ exists, it is reused (no re-download).
 
 import logging
 import os
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional, Sequence, Tuple, Union
 
@@ -89,6 +89,21 @@ def cmap_api(cmap_key: Optional[str] = None) -> pycmap.API:
 
 # ----------------------- CMAP ----------------------- #
 
+def _safe_name(s: str) -> str:
+    return s.replace("/", "_").replace(" ", "_")
+
+
+def _save_cmap_csv(df: pd.DataFrame, *, data_dir: Path, table: str, variable: str, day: dt.date) -> None:
+    """Persist CMAP data for dashboards/exports (one CSV per table/variable/day)."""
+    if df.empty:
+        return
+    cmap_dir = data_dir / "cmap"
+    cmap_dir.mkdir(parents=True, exist_ok=True)
+    out = cmap_dir / f"{_safe_name(table)}__{_safe_name(variable)}__{day.strftime('%Y%m%d')}.csv"
+    try:
+        df.to_csv(out, index=False)
+    except Exception:
+        LOG.exception("Failed to save CMAP CSV %s", out)
 
 def get_field(
     table: str,
@@ -305,6 +320,52 @@ def get_altimetry(
         df = netcdf_to_dataframe(nc_path, variables=["sla", "ugos", "vgos"])
         if not df.empty and all(c in df.columns for c in ("ugos", "vgos")):
             df["current"] = (df["ugos"] ** 2 + df["vgos"] ** 2) ** 0.5
+        return df
+    except Exception:
+        LOG.exception("Downloading %s for %s failed.", prefix, day)
+        return pd.DataFrame()
+
+
+def get_plankton(
+    dt: Union[date, datetime],
+    domain: Sequence[float],
+    data_dir: Union[str, Path],
+    *,
+    prefix: str = "plankton_nrt",
+    dataset_version: Optional[str] = None,
+    force: bool = False,
+) -> pd.DataFrame:
+    """Daily ocean color subset: Mass concentration of chlorophyll a in sea water.
+    https://data.marine.copernicus.eu/product/OCEANCOLOUR_GLO_BGC_L4_NRT_009_102/description
+
+
+    Returns columns: lat, lon, CHL
+    """
+    day = _as_date(dt)
+    start = f"{_ymd(day)}T00:00:00"
+    end = start
+
+    ## overwrite start/end date: this product will have 2-day lag for CRESST daily plots
+    day = _as_date(datetime.today())
+    start = f"{_ymd(day - timedelta(days=2))}T00:00:00"
+    end = start
+
+    out_dir = Path(data_dir) / prefix
+    out_name = f"{prefix}_{_ymd_compact(day)}.nc"
+
+    try:
+        nc_path = _subset_copernicus(
+            dataset_id="cmems_obs-oc_glo_bgc-plankton_nrt_l4-gapfree-multi-4km_P1D",
+            variables=["CHL"],
+            domain=domain,
+            start_datetime=start,
+            end_datetime=end,
+            out_dir=out_dir,
+            out_name=out_name,
+            dataset_version=dataset_version,
+            force=force,
+        )
+        df = netcdf_to_dataframe(nc_path, variables=["CHL"])
         return df
     except Exception:
         LOG.exception("Downloading %s for %s failed.", prefix, day)

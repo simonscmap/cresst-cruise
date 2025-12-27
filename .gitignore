@@ -6,6 +6,7 @@ credentials.py
 output/
 data/
 figs/
+archive/
 
 # python
 __pycache__/

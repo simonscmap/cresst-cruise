@@ -127,6 +127,7 @@ def main(args: argparse.Namespace) -> int:
             if df.empty:
                 LOG.warning("No CMAP data for %s.%s on %s", table, var, day)
                 continue
+            cl._save_cmap_csv(df, data_dir=data_dir, table=table, variable=var, day=day)
             viz.plot_static_map(df, var, unit, day, fig_dir, stations)
 
     # ---------------- Copernicus ----------------
@@ -142,6 +143,16 @@ def main(args: argparse.Namespace) -> int:
         viz.plot_static_map(bio, "no3", "mmol/m³", day, fig_dir, stations)
         viz.plot_static_map(bio, "po4", "mmol/m³", day, fig_dir, stations)
         viz.plot_static_map(bio, "si", "mmol/m³", day, fig_dir, stations)
+
+    chl = cl.get_plankton(
+        day,
+        bbox,
+        data_dir,
+        dataset_version=args.copernicus_dataset_version_altimetry,
+        force=args.force_download,
+    )
+    if not chl.empty:
+        viz.plot_static_map(chl, "CHL", "mg/m³", day, fig_dir, stations)
 
     alt = cl.get_altimetry(
         day,
