@@ -84,6 +84,11 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Optional explicit dataset_version for Copernicus wind subset.",
     )
     p.add_argument(
+        "--copernicus-dataset-version-biogeochem",
+        default=None,
+        help="Optional explicit dataset_version for Copernicus biogeochem subset.",
+    )
+    p.add_argument(
         "--force-download",
         action="store_true",
         help="Force Copernicus re-download even if cached NetCDF exists.",
@@ -129,14 +134,14 @@ def main(args: argparse.Namespace) -> int:
         day,
         bbox,
         data_dir,
-        dataset_version=args.copernicus_dataset_version_altimetry,
+        dataset_version=args.copernicus_dataset_version_biogeochem,
         force=args.force_download,
     )
     if not bio.empty:
-        viz.plot_static_map(bio, "fe", "mmol/m3", day, fig_dir, stations)
-        viz.plot_static_map(bio, "no3", "mmol/m3", day, fig_dir, stations)
-        viz.plot_static_map(bio, "po4", "mmol/m3", day, fig_dir, stations)
-        viz.plot_static_map(bio, "si", "mmol/m3", day, fig_dir, stations)
+        viz.plot_static_map(bio, "fe", "mmol/m³", day, fig_dir, stations)
+        viz.plot_static_map(bio, "no3", "mmol/m³", day, fig_dir, stations)
+        viz.plot_static_map(bio, "po4", "mmol/m³", day, fig_dir, stations)
+        viz.plot_static_map(bio, "si", "mmol/m³", day, fig_dir, stations)
 
     alt = cl.get_altimetry(
         day,
@@ -163,7 +168,6 @@ def main(args: argparse.Namespace) -> int:
         day,
         bbox,
         data_dir,
-        dataset_version=args.copernicus_dataset_version_wind,
         force=args.force_download,
     )
     if not wind.empty:

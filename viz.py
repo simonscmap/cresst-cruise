@@ -292,7 +292,7 @@ def plot_map(
     label_unit = unit.strip() if unit else ""
     cbar.set_label(f"{variable} ({label_unit})" if label_unit else variable)
 
-    ax.set_title(f"{variable} — {time_label(time_like)}")
+    ax.set_title(f"{variable.upper()} — {time_label(time_like)}")
 
     save_path = Path(save_path)
     save_path.parent.mkdir(parents=True, exist_ok=True)
@@ -366,7 +366,7 @@ def plot_gradient_mag(
     label_unit = unit.strip() if unit else ""
     cbar.set_label(f"|∇{variable}| ({label_unit}/km)" if label_unit else f"|∇{variable}| (/km)")
 
-    ax.set_title(f"Gradient magnitude: {variable} — {time_label(time_like)}")
+    ax.set_title(f"Gradient magnitude: {variable.upper()} — {time_label(time_like)}")
 
     save_path = Path(save_path)
     save_path.parent.mkdir(parents=True, exist_ok=True)
@@ -453,7 +453,7 @@ def plot_vector_field(
     cbar = plt.colorbar(im, ax=ax, pad=0.02, shrink=0.92)
     cbar.set_label(f"{speed_name} ({unit})")
 
-    ax.set_title(f"{speed_name} + vectors — {time_label(time_like)}")
+    ax.set_title(f"{speed_name.upper()} + vectors — {time_label(time_like)}")
 
     save_path = Path(save_path)
     save_path.parent.mkdir(parents=True, exist_ok=True)
