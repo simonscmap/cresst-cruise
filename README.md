@@ -1,4 +1,4 @@
-# CRESST Daily Near-Real-Time Ocean Plots
+# CRESST Cruise Daily Near-Real-Time Ocean Context
 
 This repository generates daily, near-real-time maps for the **CRESST student research cruise** (UW CoEnv):
 
@@ -7,10 +7,7 @@ This repository generates daily, near-real-time maps for the **CRESST student re
 - Sea Level Anomaly (SLA) + surface geostrophic currents — Copernicus Marine (DUACS)
 - 10 m winds (daily-mean from hourly) — Copernicus Marine
 
-The goal is to produce **quick-look, reproducible PNGs** to support situational awareness during the expedition.
-
-Cruise info page:
-https://environment.uw.edu/intranet/research/collaborative-research/cresst-research-cruise-opportunity/
+The goal is to produce **quick-look, reproducible visualizations** to support situational awareness during the expedition.
 
 ---
 
@@ -37,8 +34,6 @@ export CMAP_API_KEY="..."
 export COPERNICUSMARINE_USERNAME="..."
 export COPERNICUSMARINE_PASSWORD="..."
 ```
-
-Alternatively, copy `credentials.py.example` to `credentials.py` and fill values. **Do not commit** `credentials.py`.
 
 ---
 
