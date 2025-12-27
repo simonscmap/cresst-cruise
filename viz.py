@@ -161,7 +161,7 @@ def _default_cmap(name: str) -> str:
         if "current" in lname or "ugos" in lname or "vgos" in lname:
             return _pick_registered(["bone", "speed"], "viridis")
         if "par" in lname:
-            return _pick_registered(["cmo.solar", "solar"], "viridis")
+            return _pick_registered(["cmo.algae", "algae"], "viridis")
 
     return "viridis"
 
@@ -173,9 +173,9 @@ def style_for_variable(variable: str) -> VarStyle:
     if lname in {"chlor_a", "chl", "chl_a", "chlor"} or "chlor" in lname or "chl" in lname:
         return VarStyle(cmap=_default_cmap(variable), log=True)
 
-    # SLA is naturally centered at 0.
-    if "sla" in lname:
-        return VarStyle(cmap=_default_cmap(variable), diverging_center=0.0)
+    # # SLA is naturally centered at 0.
+    # if "sla" in lname:
+    #     return VarStyle(cmap=_default_cmap(variable), diverging_center=0.0)
 
     return VarStyle(cmap=_default_cmap(variable))
 
@@ -267,7 +267,6 @@ def plot_map(
     time_like: object,
     save_path: Union[str, Path],
     stations: Optional[pd.DataFrame] = None,
-    source: Optional[str] = None,
 ) -> None:
     extent = (float(lon.min()), float(lon.max()), float(lat.min()), float(lat.max()))
     fig, ax = make_geo_axes(extent)
@@ -286,7 +285,8 @@ def plot_map(
         shading="auto"
     )
 
-    overlay_stations(stations, ax)
+    if stations is not None:
+        overlay_stations(stations, ax)
 
     cbar = plt.colorbar(im, ax=ax, pad=0.02, shrink=0.92)
     label_unit = unit.strip() if unit else ""
@@ -341,8 +341,6 @@ def plot_gradient_mag(
 
     Lon2, Lat2 = np.meshgrid(lon, lat)
     vmin, vmax = _robust_limits(grad_mag_km)
-    # Use a Colormap object (not a string name) to avoid registration/name differences
-    # across Matplotlib/cmocean installations.
     if cmocean is not None:
         try:
             cmap = plt.get_cmap("cmo.amp")
@@ -361,7 +359,8 @@ def plot_gradient_mag(
         shading="auto"
     )
 
-    overlay_stations(stations, ax)
+    if stations is not None:
+        overlay_stations(stations, ax)
 
     cbar = plt.colorbar(im, ax=ax, pad=0.02, shrink=0.92)
     label_unit = unit.strip() if unit else ""
@@ -441,7 +440,6 @@ def plot_vector_field(
         zorder=4,
     )
 
-    # Quiver key: show a representative speed
     key_val = 0.0
     for candidate in (1.0, 2.0, 5.0, 10.0):
         if ref >= candidate:
@@ -449,7 +447,8 @@ def plot_vector_field(
     if key_val > 0:
         ax.quiverkey(Q, 0.92, 0.05, key_val, f"{key_val:g} {unit}", labelpos="E", coordinates="axes")
 
-    overlay_stations(stations, ax)
+    if stations is not None:
+        overlay_stations(stations, ax)
 
     cbar = plt.colorbar(im, ax=ax, pad=0.02, shrink=0.92)
     cbar.set_label(f"{speed_name} ({unit})")
@@ -486,7 +485,7 @@ def plot_static_map(
         variable=variable,
         unit=unit,
         time_like=time_like,
-        save_path=fig_dir / f"{variable}_{time_label(time_like)}.png",
+        save_path=fig_dir / "absolute" / f"{variable}_{time_label(time_like)}.png",
         stations=stations,
     )
 
@@ -499,6 +498,6 @@ def plot_static_map(
             variable=variable,
             unit=unit,
             time_like=time_like,
-            save_path=fig_dir / f"grad_{variable}_{time_label(time_like)}.png",
+            save_path=fig_dir / "gradient" / f"grad_{variable}_{time_label(time_like)}.png",
             stations=stations,
         )

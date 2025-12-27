@@ -213,6 +213,8 @@ def _subset_copernicus(
     out_name: str,
     dataset_version: Optional[str] = None,
     force: bool = False,
+    start_depth: Optional[float] = None,
+    end_depth: Optional[float] = None,
 ) -> Path:
     """Download a Copernicus Marine subset (cached)."""
     out_dir = Path(out_dir)
@@ -232,6 +234,8 @@ def _subset_copernicus(
         maximum_longitude=lon2,
         minimum_latitude=lat1,
         maximum_latitude=lat2,
+        minimum_depth=start_depth,
+        maximum_depth=end_depth,
         start_datetime=start_datetime,
         end_datetime=end_datetime,
         username=usr,
@@ -274,6 +278,8 @@ def get_altimetry(
     force: bool = False,
 ) -> pd.DataFrame:
     """Daily altimetry subset: SLA + surface geostrophic currents.
+    https://data.marine.copernicus.eu/product/SEALEVEL_GLO_PHY_L4_NRT_008_046/description
+
 
     Returns columns: lat, lon, sla, ugos, vgos, current
     """
@@ -297,7 +303,6 @@ def get_altimetry(
             force=force,
         )
         df = netcdf_to_dataframe(nc_path, variables=["sla", "ugos", "vgos"])
-        df = _daily_mean_over_time(df, ["sla", "ugos", "vgos"])
         if not df.empty and all(c in df.columns for c in ("ugos", "vgos")):
             df["current"] = (df["ugos"] ** 2 + df["vgos"] ** 2) ** 0.5
         return df
@@ -316,6 +321,7 @@ def get_wind(
     force: bool = False,
 ) -> pd.DataFrame:
     """Hourly wind subset aggregated to daily mean.
+    https://data.marine.copernicus.eu/product/WIND_GLO_PHY_L4_NRT_012_004/description
 
     Returns columns: lat, lon, eastward_wind, northward_wind, wind_speed
     """
@@ -347,3 +353,45 @@ def get_wind(
     except Exception:
         LOG.exception("Downloading %s for %s failed.", prefix, day)
         return pd.DataFrame()
+
+
+def get_biogeochem(
+    dt: Union[date, datetime],
+    domain: Sequence[float],
+    data_dir: Union[str, Path],
+    prefix: str = "biogeochem",
+    dataset_version: Optional[str] = None,
+    force: bool = False,
+) -> pd.DataFrame:
+    """Daily Biogeochem subset: Fe, NO3, PO4, Si.
+    https://data.marine.copernicus.eu/product/GLOBAL_ANALYSISFORECAST_BGC_001_028/description
+
+    Returns columns: lat, lon, fe, no3, po4, si
+    """
+    day = _as_date(dt)
+    start = f"{_ymd(day)}T00:00:00"
+    end = start  # P1D product
+
+    out_dir = Path(data_dir) / prefix
+    out_name = f"{prefix}_{_ymd_compact(day)}.nc"
+
+    try:
+        nc_path = _subset_copernicus(
+            dataset_id="cmems_mod_glo_bgc-nut_anfc_0.25deg_P1D-m",
+            variables=["fe", "no3", "po4", "si"],
+            domain=domain,
+            start_depth=0,
+            end_depth=0.5,
+            start_datetime=start,
+            end_datetime=end,
+            out_dir=out_dir,
+            out_name=out_name,
+            dataset_version=dataset_version,
+            force=force,
+        )        
+        df = netcdf_to_dataframe(nc_path, variables=["fe", "no3", "po4", "si"])
+        return df
+    except Exception:
+        LOG.exception("Downloading %s for %s failed.", prefix, day)
+        return pd.DataFrame()
+

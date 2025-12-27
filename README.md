@@ -1,10 +1,11 @@
-# CRESST Cruise Daily Near-Real-Time Ocean Context
+# Daily Near-Real-Time Ocean Context for the CRESST Expedition
 
 This repository generates daily, near-real-time maps for the **CRESST student research cruise** (UW CoEnv):
 
 - Sea Surface Temperature (SST) — Simons CMAP (AVHRR OI NRT)
 - Chlorophyll-a, PAR, AOD — Simons CMAP (MODIS)
 - Sea Level Anomaly (SLA) + surface geostrophic currents — Copernicus Marine (DUACS)
+- Biogeochemistry Fe, NO3, PO4, Si (model analysis) — Copernicus Marine
 - 10 m winds (daily-mean from hourly) — Copernicus Marine
 
 The goal is to produce **quick-look, reproducible visualizations** to support situational awareness during the expedition.

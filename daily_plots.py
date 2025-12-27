@@ -12,6 +12,7 @@ Outputs:
 """
 
 import argparse
+import os
 import datetime as dt
 import logging
 import shutil
@@ -59,7 +60,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--stations",
         default="stations.csv",
-        help="CSV with columns lat, lon to overlay sampling stations.",
+        help="Path to the CSV with columns lat, lon to overlay sampling stations.",
     )
     p.add_argument(
         "--out",
@@ -108,12 +109,12 @@ def main(args: argparse.Namespace) -> int:
     data_dir.mkdir(parents=True, exist_ok=True)
     fig_dir.mkdir(parents=True, exist_ok=True)
 
-    stations = viz.load_stations(args.stations)
-
-    # Reuse a single CMAP API client for speed.
-    api = cl.cmap_api()
+    stations = None
+    if os.path.isfile(args.stations):
+        stations = viz.load_stations(args.stations)
 
     # ---------------- CMAP ----------------
+    api = cl.cmap_api()
     for table, props in DEFAULT_CMAP_DATASETS.items():
         for i, var in enumerate(props["variables"]):
             unit = props["units"][i] if i < len(props["units"]) else ""
@@ -124,6 +125,19 @@ def main(args: argparse.Namespace) -> int:
             viz.plot_static_map(df, var, unit, day, fig_dir, stations)
 
     # ---------------- Copernicus ----------------
+    bio = cl.get_biogeochem(
+        day,
+        bbox,
+        data_dir,
+        dataset_version=args.copernicus_dataset_version_altimetry,
+        force=args.force_download,
+    )
+    if not bio.empty:
+        viz.plot_static_map(bio, "fe", "mmol/m3", day, fig_dir, stations)
+        viz.plot_static_map(bio, "no3", "mmol/m3", day, fig_dir, stations)
+        viz.plot_static_map(bio, "po4", "mmol/m3", day, fig_dir, stations)
+        viz.plot_static_map(bio, "si", "mmol/m3", day, fig_dir, stations)
+
     alt = cl.get_altimetry(
         day,
         bbox,
@@ -133,7 +147,7 @@ def main(args: argparse.Namespace) -> int:
     )
     if not alt.empty:
         viz.plot_static_map(alt, "sla", "m", day, fig_dir, stations)
-        viz.plot_static_map(alt, "current", "m/s", day, fig_dir, stations, include_gradient=False)
+        viz.plot_static_map(alt, "current", "m/s", day, fig_dir, stations)
         viz.plot_vector_field(
             alt,
             u_name="ugos",
@@ -141,7 +155,7 @@ def main(args: argparse.Namespace) -> int:
             speed_name="current",
             unit="m/s",
             time_like=day,
-            save_path=fig_dir / f"quiver_current_{day}.png",
+            save_path=fig_dir / "quiver" / f"quiver_current_{day}.png",
             stations=stations,
         )
 
@@ -153,7 +167,7 @@ def main(args: argparse.Namespace) -> int:
         force=args.force_download,
     )
     if not wind.empty:
-        viz.plot_static_map(wind, "wind_speed", "m/s", day, fig_dir, stations, include_gradient=False)
+        viz.plot_static_map(wind, "wind_speed", "m/s", day, fig_dir, stations)
         viz.plot_vector_field(
             wind,
             u_name="eastward_wind",
@@ -161,7 +175,7 @@ def main(args: argparse.Namespace) -> int:
             speed_name="wind_speed",
             unit="m/s",
             time_like=day,
-            save_path=fig_dir / f"quiver_wind_speed_{day}.png",
+            save_path=fig_dir / "quiver" / f"quiver_wind_speed_{day}.png",
             stations=stations,
         )
 
