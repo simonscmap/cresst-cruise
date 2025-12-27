@@ -1,5 +1,5 @@
 # Daily Near-Real-Time Ocean Context for the CRESST Expedition
-![Example Visualizations](assets/example.png)
+![Example Visualizations](assets/example_fields.png)
 
 This repository generates daily, near-real-time maps for the **CRESST student research cruise** (UW CoEnv):
 
